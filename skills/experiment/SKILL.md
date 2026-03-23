@@ -5,6 +5,23 @@ description: 实验执行层唯一入口。覆盖从目标理解到最终报告�
 
 # 实验执行
 
+## 基本原则
+
+### 自主解决
+
+遇到任何未预期的情况——工具不在预设范围内、资源缺失、环境异常——**先自检，先自己解决**。
+
+- 有更好的工具？主动切换，不沿用低效实现
+- 资源不存在？自己去获取，不静默替换，不停下来问用户
+- 遇到错误？诊断根因，修复后继续，不反复重试同一个失败命令
+- 只有影响 Claim 本身（目标或成功标准）的问题才需要告知用户
+
+### 指令遵循
+
+用户明确指定的约束是**硬约束**。无法满足时，先自主解决；自主解决不了才停下来报告。不能静默替换为其他选项，无论替换结果是否更好。
+
+指令模糊时，先确认理解是否正确，不自行发挥。
+
 ## 入口：读取当前状态
 
 **每次进入此 skill，第一步必须读 `EXPERIMENT_TRACKER.md`。**
@@ -135,8 +152,27 @@ GPU 不可用时：明确指出是哪一层不可用（宿主无 GPU / 驱动异
 1. 读 TRACKER，取 `current_claim_id`；若无则取第一个 `PENDING` Claim，写入 `current_claim_id`
 2. 读 `env_handle.json`，若有离线标志则在后续设计中使用本地路径替代外部服务
 3. 读现有代码，理解已有基础
-4. 设计本轮实验方案（模型 / 超参 / 数据处理 / 评测方式）
-5. 写或更新代码
+4. 确定本轮实验涉及的任务类型，查阅对应规范，按规范选型：
+
+   | 任务类型 | 规范文件 |
+   |---------|---------|
+   | 大模型推理（数据生成、打分） | `references/methods/inference.md` |
+   | 监督微调 SFT | `references/methods/sft.md` |
+   | 强化微调 RFT / RLHF | `references/methods/rft.md` |
+   | 预训练 | `references/methods/pretraining.md` |
+   | 传统深度学习 | `references/methods/deep_learning.md` |
+   | 数据处理 | `references/methods/data_processing.md` |
+   | 评估 | `references/methods/evaluation.md` |
+   | 向量检索 / RAG | `references/methods/rag.md` |
+   | 多模态训练 | `references/methods/multimodal.md` |
+
+   **选型原则：**
+   - 选型前必须确认：当前选择是否是该类任务的高效实现，有无明显更好的替代
+   - 上表是已知最佳实践的参考，命中时直接采用；未命中时自行判断，但自检同样适用
+   - 需要定制时，优先在现有框架上扩展；确实无法满足时才自定义实现
+
+5. 设计本轮实验方案（模型 / 超参 / 数据处理 / 评测方式）
+6. 写或更新代码
 
 代码编写规范 → ref: `references/code.md`
 
