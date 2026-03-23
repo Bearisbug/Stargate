@@ -73,7 +73,7 @@ description: 实验执行层唯一入口。覆盖从目标理解到最终报告�
 
 - 一句话描述（要验证的假设）
 - 成功标准（可判断 ANSWERED / FAILED 的条件）
-- 依赖关系（哪些 Claim 需要先完成）
+- 依赖关系（哪些 Claim 需要先完成，填 Claim id 列表，无依赖填空）
 
 ### Step 4：创建 Artifacts
 
@@ -149,7 +149,7 @@ GPU 不可用时：明确指出是哪一层不可用（宿主无 GPU / 驱动异
 
 **步骤**：
 
-1. 读 TRACKER，取 `current_claim_id`；若无则取第一个 `PENDING` Claim，写入 `current_claim_id`
+1. 读 TRACKER，取 `current_claim_id`；若无则按依赖关系取下一个可执行的 `PENDING` Claim（依赖的 Claim 全部 `ANSWERED` 才可执行），写入 `current_claim_id`。若有 PENDING Claim 但依赖未满足，停下来告知用户
 2. 读 `env_handle.json`，若有离线标志则在后续设计中使用本地路径替代外部服务
 3. 读现有代码，理解已有基础
 4. 确定本轮实验涉及的任务类型，查阅对应规范，按规范选型：
@@ -173,6 +173,7 @@ GPU 不可用时：明确指出是哪一层不可用（宿主无 GPU / 驱动异
 
 5. 设计本轮实验方案（模型 / 超参 / 数据处理 / 评测方式）
 6. 写或更新代码
+7. **Sanity check**：提交完整 job 前，先用最小规模（少量数据、极少步数）在本地或远端跑通一遍，确认 pipeline 无报错、输出格式符合预期，再提交正式 job
 
 代码编写规范 → ref: `references/code.md`
 
@@ -228,11 +229,11 @@ expected_outputs:
 
 ## WAITING
 
-读取 TRACKER 中的 job_id，检查 job 状态：
+读取 TRACKER 中的 `job_id`，**每次进入此阶段必须主动检查 job 状态和最新日志**，不能只等用户回来汇报。
 
 | 状态 | 处理 |
 |------|------|
-| 运行中 | 读最新日志，汇报进度，保持 WAITING |
+| 运行中 | 读最新日志，解析当前进度和关键指标，向用户汇报；发现训练异常（loss 发散、指标恒定、NaN）立即报警，不等 job 自然结束 |
 | 完成 | 更新 TRACKER：`phase → ANALYZING` |
 | 失败 | 进入错误处理 |
 | 消失（队列中找不到且无输出）| 视为异常失败，进入错误处理 |
@@ -263,12 +264,20 @@ expected_outputs:
 4. 更新 TRACKER 中该 Claim 的 `status` 和 `result` 字段
 5. 向用户汇报结果摘要，然后按下表决策
 
+**FAILED 诊断**：Claim 未达标时，先区分原因再决策：
+
+| 原因 | 判断方式 | 处理 |
+|------|---------|------|
+| 实现 bug（loss 异常、指标恒定等） | 日志有明显异常 | 标记为实现问题，修复后重跑，不计入 FAILED |
+| 真实负结果（方法本身不 work） | 训练正常但指标未达标 | 标记 `FAILED`，进入迭代决策 |
+
 **迭代决策**：
 
 | 情况 | 处理 |
 |------|------|
 | 有 PENDING Claim | 重置 TRACKER `retry_count: 0`，`phase → DESIGN`，继续下一轮 |
 | 全部 ANSWERED | 更新 TRACKER：`phase → REPORTING` |
+| 有 FAILED Claim，其余完成 | 告知用户哪个 Claim FAILED 及原因，确认是否继续 REPORTING 或重新设计 |
 | 结果揭示 Claim 设计有问题 | 停下来告知用户，讨论是否修改 Claim |
 | 结果远好于预期，无需继续 | 告知用户，确认是否跳过剩余 Claim 直接 REPORTING |
 
@@ -279,9 +288,12 @@ expected_outputs:
 **步骤**：
 
 1. 读取所有 `rounds/*.json`，汇总各 Claim 的结果和指标
-2. 生成 `reports/report.md`：背景、方法、每个 Claim 的结论、关键数字、失败分析
+2. 生成 `reports/report.md`，按规范填写，FAILED 的 Claim 必须有失败分析，可复现性字段必须填写
 3. 为每个 ANSWERED Claim 生成 `rounds/insights/claim_<N>.md`：单条 insight，可直接供论文层消费
 4. 更新 TRACKER：`phase → DONE`
+5. 自动触发 `refine` skill
+
+→ report.md 格式规范：`references/artifacts/report.md`
 
 ---
 
