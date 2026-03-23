@@ -73,7 +73,7 @@ def generate_batch(model, tokenizer, prompts, max_new_tokens=200, device="cuda")
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--model", default="/online1/sc100123/sc100123/data/Qwen3-4B")
+    parser.add_argument("--model", default="/online1/sc100123/sc100123/data/Qwen3-30B-A3B")
     parser.add_argument("--input", default="data/rubricbench_raw.jsonl")
     parser.add_argument("--output", default="data/llm_rubrics.jsonl")
     parser.add_argument("--n-per-instruction", type=int, default=5,

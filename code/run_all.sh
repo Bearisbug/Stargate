@@ -19,10 +19,10 @@ source /online1/public/support/amd/miniconda3/latest/etc/profile.d/conda.sh
 conda activate lf
 mkdir -p logs runs data
 
-MODEL_PATH=/online1/sc100123/sc100123/data/Qwen3-4B
+MODEL_PATH=/online1/sc100123/sc100123/data/Qwen3-30B-A3B
 
-# ── Step 1: Generate Qwen3-4B rubrics (5 variants × 1147 = 5735 rubrics) ────
-echo "===== Step 1: Generate Qwen3-4B LLM rubrics ====="
+# ── Step 1: Generate Qwen3-30B-A3B rubrics (5 variants × 1147 = 5735 rubrics) ────
+echo "===== Step 1: Generate Qwen3-30B-A3B LLM rubrics ====="
 python code/gen_llm_rubrics.py \
   --model $MODEL_PATH \
   --input data/rubricbench_raw.jsonl \
@@ -32,7 +32,7 @@ python code/gen_llm_rubrics.py \
   --resume
 
 # ── Step 2: Build Prometheus test set (Qwen3-4B negatives) ──────────────────
-echo "===== Step 2: Build Prometheus test set (Qwen3-4B negatives) ====="
+echo "===== Step 2: Build Prometheus test set (Qwen3-30B-A3B negatives) ====="
 python code/prep_test_set.py \
   --model $MODEL_PATH \
   --output-dir data/ \

@@ -127,7 +127,7 @@ def generate_llm_rubrics_for_criteria(criteria_samples, model_path, batch_size=4
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--model", default="/online1/sc100123/sc100123/data/Qwen3-4B")
+    parser.add_argument("--model", default="/online1/sc100123/sc100123/data/Qwen3-30B-A3B")
     parser.add_argument("--output-dir", default="data/")
     parser.add_argument("--local-prometheus", default=None,
                         help="Local JSONL if HF is unavailable")
