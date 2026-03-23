@@ -132,7 +132,7 @@ GPU 不可用时：明确指出是哪一层不可用（宿主无 GPU / 驱动异
 
 **步骤**：
 
-1. 读 TRACKER，找到当前第一个 `PENDING` Claim
+1. 读 TRACKER，取 `current_claim_id`；若无则取第一个 `PENDING` Claim，写入 `current_claim_id`
 2. 读 `env_handle.json`，若有离线标志则在后续设计中使用本地路径替代外部服务
 3. 读现有代码，理解已有基础
 4. 设计本轮实验方案（模型 / 超参 / 数据处理 / 评测方式）
@@ -219,7 +219,13 @@ expected_outputs:
 
 ## ANALYZING
 
-→ ref: `references/phases/analyzing.md`
+**步骤**：
+
+1. 从远端拉取输出文件，解析关键指标（loss、accuracy、AUROC 等）
+2. 对照 TRACKER 中当前 Claim 的成功标准，判断 `ANSWERED` 或 `FAILED`
+3. 将结果写入 `rounds/<run_id>.json`（含 git_hash、指标、Claim id）
+4. 更新 TRACKER 中该 Claim 的 `status` 和 `result` 字段
+5. 向用户汇报结果摘要，然后按下表决策
 
 **迭代决策**：
 
@@ -234,7 +240,12 @@ expected_outputs:
 
 ## REPORTING
 
-→ ref: `references/phases/reporting.md`
+**步骤**：
+
+1. 读取所有 `rounds/*.json`，汇总各 Claim 的结果和指标
+2. 生成 `reports/report.md`：背景、方法、每个 Claim 的结论、关键数字、失败分析
+3. 为每个 ANSWERED Claim 生成 `rounds/insights/claim_<N>.md`：单条 insight，可直接供论文层消费
+4. 更新 TRACKER：`phase → DONE`
 
 ---
 
@@ -254,6 +265,7 @@ expected_outputs:
 phase: <当前阶段>
 updated_at: <timestamp>
 retry_count: <数字>
+current_claim_id: <数字>   # 当前正在处理的 Claim id，DESIGN/EXECUTING/WAITING/ANALYZING 阶段有效
 
 job_id: <id>               # 仅 WAITING 阶段有效
 submitted_at: <timestamp>  # 仅 WAITING 阶段有效
