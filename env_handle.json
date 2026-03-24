@@ -1,0 +1,25 @@
+{
+  "status": "ready",
+  "exec_type": "slurm",
+  "host": "sc100123@174.0.250.88",
+  "work_dir": "/online1/sc100123/sc100123/sst2_baseline",
+
+  "slurm": {
+    "partition": "q_intel_gpu_nvidia_h20_10",
+    "gpu_type": "H20",
+    "gpu_vram_gb": 96,
+    "gpu_count": 1,
+    "gres": "gpu:1"
+  },
+
+  "runtime": {
+    "type": "conda",
+    "env_path": "/home/export/base/sc100123/sc100123/online1/.conda/envs/lf",
+    "activate_cmd": "module load amd/cudnn/9.6.0 && source /online1/public/support/amd/miniconda3/latest/etc/profile.d/conda.sh && conda activate lf",
+    "packages_verified": ["llamafactory==0.9.4.dev0", "transformers", "peft", "torch"]
+  },
+
+  "offline": true,
+
+  "notes": "HuggingFace not reachable from compute nodes. SST-2 data pre-uploaded to work_dir/data/. Model Qwen3-4B at /online1/sc100123/sc100123/data/Qwen3-4B"
+}

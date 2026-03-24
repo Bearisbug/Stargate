@@ -1,0 +1,10 @@
+{
+  "sst2_train": {
+    "file_name": "sst2_train.json",
+    "formatting": "alpaca"
+  },
+  "sst2_val": {
+    "file_name": "sst2_val.json",
+    "formatting": "alpaca"
+  }
+}

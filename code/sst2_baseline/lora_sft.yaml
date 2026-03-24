@@ -1,0 +1,56 @@
+### Model
+model_name_or_path: /online1/sc100123/sc100123/data/Qwen3-4B
+
+### Method
+stage: sft
+do_train: true
+finetuning_type: lora
+lora_target: all
+lora_rank: 16
+lora_alpha: 32
+lora_dropout: 0.1
+
+### Dataset
+dataset: sst2_train
+dataset_dir: /online1/sc100123/sc100123/sst2_baseline/data
+val_size: 0.0          # 使用单独的 eval set，不从 train 中分割
+template: qwen3
+
+### Output
+output_dir: /online1/sc100123/sc100123/sst2_baseline/runs/qwen3-4b-lora
+logging_dir: /online1/sc100123/sc100123/sst2_baseline/runs/qwen3-4b-lora/logs
+overwrite_output_dir: true
+
+### Training
+per_device_train_batch_size: 16
+per_device_eval_batch_size: 16
+gradient_accumulation_steps: 2
+learning_rate: 1.0e-4
+num_train_epochs: 3.0
+lr_scheduler_type: cosine
+warmup_ratio: 0.05
+weight_decay: 0.01
+
+max_length: 256
+cutoff_len: 256
+
+bf16: true
+ddp_find_unused_parameters: false
+
+### Evaluation
+eval_dataset: sst2_val
+eval_strategy: steps
+eval_steps: 200
+save_strategy: steps
+save_steps: 200
+save_total_limit: 2
+load_best_model_at_end: true
+metric_for_best_model: eval_loss
+
+### Logging
+logging_steps: 50
+report_to: none
+
+### Reproducibility
+seed: 42
+data_seed: 42
