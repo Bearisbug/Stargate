@@ -13,21 +13,23 @@ set -e
 
 WORK_DIR=/online1/sc100123/sc100123/sst2_baseline
 MODEL_PATH=/online1/sc100123/sc100123/data/Qwen3-4B
+CACHE_BASE=/online1/sc100123/sc100123/cache
+
+# ── 缓存目录重定向（home 目录有 quota 限制）────────────────
+export HF_HOME=${CACHE_BASE}/hf_home
+export HF_DATASETS_CACHE=${CACHE_BASE}/hf_datasets
+export TRITON_CACHE_DIR=${CACHE_BASE}/triton
+export TMPDIR=${CACHE_BASE}/tmp
+mkdir -p ${HF_HOME} ${HF_DATASETS_CACHE} ${TRITON_CACHE_DIR} ${TMPDIR}
 
 # ── 环境初始化 ────────────────────────────────────────────
 module load intel/gcc_compiler/10.3.0
-module load amd/cudnn/9.6.0
+module load amd/cuda/12.1
 source /online1/public/support/amd/miniconda3/latest/etc/profile.d/conda.sh
 conda activate lf
 
 cd ${WORK_DIR}
 mkdir -p logs data runs
-
-# ── 检查 LLaMA-Factory ────────────────────────────────────
-if ! python -c "import llamafactory" 2>/dev/null; then
-    echo "LLaMA-Factory not found, installing..."
-    pip install llamafactory -q
-fi
 
 # ── Step 1: 验证数据集（已预先上传） ─────────────────────
 echo "===== Step 1: Verify SST-2 dataset ====="
