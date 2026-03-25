@@ -24,7 +24,7 @@ mkdir -p ${HF_HOME} ${HF_DATASETS_CACHE} ${TRITON_CACHE_DIR} ${TMPDIR}
 
 # ── 环境初始化 ────────────────────────────────────────────
 module load intel/gcc_compiler/10.3.0
-module load amd/cuda/12.1
+module load amd/cudnn/9.6.0
 source /online1/public/support/amd/miniconda3/latest/etc/profile.d/conda.sh
 conda activate lf
 
