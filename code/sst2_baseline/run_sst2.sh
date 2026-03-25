@@ -15,6 +15,7 @@ WORK_DIR=/online1/sc100123/sc100123/sst2_baseline
 MODEL_PATH=/online1/sc100123/sc100123/data/Qwen3-4B
 
 # ── 环境初始化 ────────────────────────────────────────────
+module load intel/gcc_compiler/10.3.0
 module load amd/cudnn/9.6.0
 source /online1/public/support/amd/miniconda3/latest/etc/profile.d/conda.sh
 conda activate lf
