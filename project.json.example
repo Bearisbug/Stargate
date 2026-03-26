@@ -1,0 +1,27 @@
+{
+  "project_name": "<填写项目名>",
+  "servers": {
+    "default": "user@host",
+    "autodl": "root@region-XX.seetacloud.com:XXXXX"
+  },
+  "work_dir": "/path/to/workspace",
+  "model_base_dir": null,
+  "data_base_dir": null,
+  "experiment": {
+    "platform": "slurm | autodl | cloud | lab | local",
+    "runtime": "conda | docker | singularity",
+    "offline": false
+  },
+  "feishu": {
+    "enabled": false,
+    "app_id": "",
+    "app_secret": "",
+    "chat_id": ""
+  },
+  "langfuse": {
+    "enabled": false,
+    "host": "https://cloud.langfuse.com",
+    "public_key": "",
+    "secret_key": ""
+  }
+}

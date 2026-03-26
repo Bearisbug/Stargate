@@ -1,0 +1,1 @@
+在 AutoDL 服务器 root@region-42.seetacloud.com:54297 密码 1kntIewagNsx 上用 PyTorch 训练一个两层 MLP 对随机生成的二分类数据做分类，跑 100 steps，记录 train_loss 和 accuracy

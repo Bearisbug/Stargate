@@ -5,6 +5,15 @@ description: 实验执行层唯一入口。覆盖从目标理解到最终报告�
 
 # 实验执行
 
+## 单阶段模式
+
+若 prompt 中包含 **"Execute ONLY the X phase"** 字样：
+- 仅完成该阶段，更新 TRACKER，然后**立即退出**
+- 不要自动进入下一阶段
+- 不要等待用户确认
+
+---
+
 ## 基本原则
 
 ### 自主解决
@@ -83,6 +92,8 @@ description: 实验执行层唯一入口。覆盖从目标理解到最终报告�
 
 展示提取的 Claims 给用户——**用户有任何回复即视为确认，立即进入下一阶段，不等待显式"开始"指令**。用户若要修改，会在回复中明确说明。
 
+> **自动模式**：若 prompt 中包含"fully automated"或"auto-confirmed"字样，跳过所有用户确认步骤，直接进入下一阶段。
+
 **更新 TRACKER：`phase → ENVIRONMENT`。**
 
 ---
@@ -91,9 +102,13 @@ description: 实验执行层唯一入口。覆盖从目标理解到最终报告�
 
 **若 `env_handle.json` 已存在且 `status: ready`**，跳过此阶段，直接进入 DESIGN。
 
+### Step 0：读 project.json（若存在）
+
+若 `project.json` 存在且包含 `experiment` 字段，直接从中读取平台类型、运行环境、离线标志，**跳过 Step 1 的询问**，直接进入 Step 2。
+
 ### Step 1：确认平台类型
 
-先判断或询问远端环境属于哪类平台：
+若 project.json 不存在或无 `experiment` 字段，判断或询问远端环境属于哪类平台：
 
 - **AutoDL** → ref: `references/servers/autodl.md`
 - **云厂商 GPU 主机**（阿里云 ECS、腾讯云 CVM、AWS EC2 等）→ ref: `references/servers/cloud_gpu.md`
@@ -225,6 +240,13 @@ expected_outputs:
 
 记录到 `EXPERIMENT_LOG.md`，明确告知用户 job 已提交，可断开 session，有结果再回来。
 
+**飞书通知**（若 `project.json` 中 `feishu.enabled` 为 true）：
+```bash
+python tools/feishu.py send "✅ job {job_id} 已提交，预计输出：{expected_outputs}"
+```
+
+**若 session 仍活跃，设置周期性监控**：使用 CronCreate 每分钟触发一次当前 skill（`* * * * *`），直到 job 完成。这样用户无需手动查询，job 完成后会自动推进到 ANALYZING。
+
 ---
 
 ## WAITING
@@ -292,6 +314,11 @@ expected_outputs:
 3. 为每个 ANSWERED Claim 生成 `rounds/insights/claim_<N>.md`：单条 insight，可直接供论文层消费
 4. 更新 TRACKER：`phase → DONE`
 5. 自动触发 `refine` skill
+
+**飞书通知**（若 `project.json` 中 `feishu.enabled` 为 true）：
+```bash
+python tools/feishu.py send-file reports/report.md --caption "📄 实验报告已生成"
+```
 
 → report.md 格式规范：`references/artifacts/report.md`
 

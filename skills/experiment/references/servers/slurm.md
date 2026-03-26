@@ -76,6 +76,26 @@ scontrol show job <job_id>           # 完整 job 信息（节点、路径、状
 
 ---
 
+## Job Script 传输注意事项
+
+通过 SSH 写入含变量的 bash 脚本时，即使使用 `<< 'EOF'`，部分 shell 配置仍会在本地展开 `${VAR}`，导致变量全部为空。推荐做法：**本地写好脚本文件，scp 传输，再 sbatch**。
+
+**sbatch 脚本固化**：`sbatch` 提交时 Slurm 将脚本内容复制进队列，此后修改脚本文件对当前 job 无效。脚本有误时必须 `scancel <job_id>` 后重新 `sbatch`。
+
+---
+
+## 常用命令补充
+
+```bash
+# 查看历史 job 状态（含已完成/失败）
+sacct -u <user> -X --format=JobID,JobName,State,ExitCode,Start,End --starttime=today
+
+# 查看节点详情
+scontrol show node <node_name>
+```
+
+---
+
 ## 诊断失败
 
 job 失败时按顺序检查：
@@ -95,8 +115,23 @@ tail -50 logs/<job_id>.out
 
 | 现象 | 可能原因 |
 |------|---------|
+| 变量全为空，脚本逻辑失效 | SSH heredoc 在本地展开了 `${VAR}`，应改用本地写文件 + scp |
 | 48s 内失败 | 缺少动态库（`libcudnn`、`libcuda` 等），检查 `module load` |
 | OOM killed | 内存不足，增加 `--mem` 或减小 batch size |
 | Timeout | 超过 `--time` 限制，增加时限或拆分任务 |
 | 找不到文件 | 路径错误或未 `cd` 到正确目录 |
 | 立即 FAILED，无输出 | job script 本身语法错误，本地 `bash -n job.sh` 检查 |
+
+---
+
+## 节点状态异常诊断
+
+节点显示 `ALLOCATED` 但 job 长时间排队时，用以下命令确认是真实占用还是节点 bug：
+
+```bash
+squeue -a -w <node_name>               # 看节点上实际在跑的 job（含所有用户）
+sacct -a -X --state=RUNNING            # 看全集群运行中的 job
+scontrol show node <node_name>         # 看 SlurmdStartTime 与 BootTime 的关系
+```
+
+若 `squeue` 和 `sacct` 均为空但节点仍显示 `ALLOCATED`，通常是 slurmd 重启后状态未同步，需联系管理员处理。

@@ -45,7 +45,29 @@ description: 项目初始化入口。所有层（实验层、调研层、论文�
 
 ---
 
-## Step 3：Langfuse tracing（可选）
+## Step 3：飞书通知（可选）
+
+询问是否启用飞书推送：
+
+- **不需要** → `feishu.enabled: false`，跳过
+- **需要** → 依次收集：
+
+| 字段 | 获取方式 |
+|------|---------|
+| `app_id` | 飞书开放平台 → 应用 → App ID |
+| `app_secret` | 飞书开放平台 → 应用 → App Secret |
+| `chat_id` | 目标群 → 群设置 → 复制链接，链接中 `open_id` 即为 chat_id（格式：`oc_xxx`） |
+
+配置完成后验证连通性：
+```bash
+python tools/feishu.py send "Stargate 飞书配置成功 ✅"
+```
+
+成功收到消息则写入 `project.json`，置 `feishu.enabled: true`。失败则保留配置但置 `enabled: false`。
+
+---
+
+## Step 4：Langfuse tracing（可选）
 
 询问是否启用 tracing：
 
@@ -64,7 +86,7 @@ python tools/trace.py init
 
 ---
 
-## Step 4：写入 project.json
+## Step 5：写入 project.json
 
 ```json
 {
@@ -79,6 +101,12 @@ python tools/trace.py init
     "platform": "<slurm | autodl | cloud | lab | local>",
     "runtime": "<conda | docker | singularity>",
     "offline": false
+  },
+  "feishu": {
+    "enabled": false,
+    "app_id": "",
+    "app_secret": "",
+    "chat_id": ""
   },
   "langfuse": {
     "enabled": false,
